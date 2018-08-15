@@ -26,7 +26,7 @@ easy-oneliner() {
             | ${=EASY_ONE_FILTER_COMMAND} ${=EASY_ONE_FILTER_OPTS} --query="$q"
             )"; do
         # remove ANSI color escapes
-        res=$(echo $cmd | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)')
+        res=$(echo $cmd | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)' | sed 's/[[:blank:]]#.*$//')
         [ -z "$res" ] && continue
         cmd="$(perl -pe 's/^(\[.*?\])\t(.*)$/$2/' <<<"$res")"
         if [[ $cmd =~ "!$" || $cmd =~ "! *#.*$" ]]; then
