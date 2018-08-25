@@ -38,9 +38,9 @@ easy-oneliner() {
 
     local len
     if [[ -n $cmd ]]; then
-        BUFFER="$(tr -d '@' <<<"$cmd" | perl -pe 's/\n/; /' | sed -e 's/; $//')"
+        BUFFER=${LBUFFER}$(tr -d '@' <<<"$cmd" | perl -pe 's/\n/; /' | sed -e 's/; $//')${RBUFFER}
         len="${cmd%%@*}"
-        CURSOR=${#len}
+        CURSOR=$((CURSOR+$#len))
         if [[ $accept -eq 1 ]]; then
             zle accept-line
         fi
