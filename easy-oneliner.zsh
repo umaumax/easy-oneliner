@@ -18,10 +18,10 @@ easy-oneliner() {
         cat <"$file" \
             | sed -e '/^#/d;/^$/d' \
             | perl -pe 's/^(\[.*?\]) (.*)$/$1\t$2/' \
-            | perl -pe 's/(\[.*?\])/\033[31m$1\033[m/' \
+            | perl -pe 's/(\[.*?\])/\033[33m$1\033[m/' \
             | perl -pe 's/^(: ?)(.*)$/$1\033[30;47;1m$2\033[m/' \
             | perl -pe 's/^(.*)([[:blank:]]#[[:blank:]]?.*)$/$1\033[30;1m$2\033[m/' \
-            | perl -pe 's/(!)/\033[31;1m$1\033[m/' \
+            | perl -pe 's/(!)/\033[33;1m$1\033[m/' \
             | perl -pe 's/(\|| [A-Z]+ [A-Z]+| [A-Z]+ )/\033[35;1m$1\033[m/g' \
             | ${=EASY_ONE_FILTER_COMMAND} ${=EASY_ONE_FILTER_OPTS} --query="$q"
             )"; do
