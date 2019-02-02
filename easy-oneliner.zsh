@@ -7,8 +7,8 @@
 : ${EASY_ONE_FILTER_COMMAND:="fzf"}
 : ${EASY_ONE_FILTER_OPTS:="--reverse --no-sort --tac --ansi --exit-0"}
 
-: ${EASY_ONE_COLOR_FILTER_COMMAND:="perl_color_filter"}
-function perl_color_filter() {
+: ${EASY_ONE_COLOR_FILTER_COMMAND:="easy_one_liner_perl_color_filter"}
+function easy_one_liner_perl_color_filter() {
     cat \
     `: 'comment out of line start with (but ignored current setting)'` \
     | perl -pe 's/^(: ?)(.*)$/$1\033[30;47;1m$2\033[m/' \
@@ -31,8 +31,8 @@ function perl_color_filter() {
     `: 'set color of [comment]'` \
     | perl -pe 's/(\[.*?\])/\033[36m$1\033[m/'
 }
-type >/dev/null 2>&1 "cgrep" && EASY_ONE_COLOR_FILTER_COMMAND="cgrep_color_filter"
-function cgrep_color_filter() {
+type >/dev/null 2>&1 "cgrep" && EASY_ONE_COLOR_FILTER_COMMAND="easy_one_liner_cgrep_color_filter"
+function easy_one_liner_cgrep_color_filter() {
     cgrep '([^\\])(".*[^\\]")' 220 |\
     cgrep '(\$)(\().*(\))' 28,28,28 |\
     cgrep '(\$[a-zA-Z_0-9]*)' |\
