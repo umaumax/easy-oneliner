@@ -51,7 +51,7 @@ easy-oneliner() {
 
     [[ ! -f $file || ! -s $file ]] && return
 
-    local cmd q k res accept
+    local cmd res accept
     while accept=0; cmd="$(
         cat <"$file" \
             `: 'remove not command # comment'` \
@@ -61,7 +61,7 @@ easy-oneliner() {
             `: 'add tab between [comment] and commands'` \
             | perl -pe 's/^(\[.*?\]) (.*)$/$1\t$2/' \
             | ${=EASY_ONE_COLOR_FILTER_COMMAND} \
-            | ${=EASY_ONE_FILTER_COMMAND} ${=EASY_ONE_FILTER_OPTS} --query="$q"
+            | ${=EASY_ONE_FILTER_COMMAND} ${=EASY_ONE_FILTER_OPTS}
             )"; do
         # remove ANSI color escapes
         res=$(echo $cmd | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)' | sed 's/[[:blank:]]#.*$//')
