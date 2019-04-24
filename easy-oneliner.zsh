@@ -33,16 +33,17 @@ function easy_one_liner_perl_color_filter() {
 }
 type >/dev/null 2>&1 "cgrep" && EASY_ONE_COLOR_FILTER_COMMAND="easy_one_liner_cgrep_color_filter"
 function easy_one_liner_cgrep_color_filter() {
+    cgrep '(.*)' 38 |\
     cgrep '([^\\])(".*[^\\]")' 220 |\
     cgrep '(\$)(\().*(\))' 28,28,28 |\
     cgrep '(\$[a-zA-Z_0-9]*)' |\
     cgrep '(\|)' 201 |\
     cgrep '(\||)|(&&)' 90,198 |\
-    cgrep '(;)|(@)|(! *$)' 211,88,88 |\
+    cgrep '(;)|(\\%#)|(! *$)' 211,88,88 |\
     cgrep '(^\[[^\]]*\])' 38 |\
     cgrep '(\$\(|\]\t*|\| *|; *|\|\| *|&& *)([a-zA-Z_][a-zA-Z_0-9.\-]*)' ,10 |\
     cgrep '('"'"'[^'"'"']+'"'"')' 226 |\
-    cgrep '(#.*$)' 239
+    cgrep '([^\][^%]#.*$)' 239
 }
 
 easy-oneliner() {
@@ -76,8 +77,11 @@ easy-oneliner() {
 
     local len
     if [[ -n $cmd ]]; then
-        BUFFER=${LBUFFER}$(tr -d '@' <<<"$cmd" | perl -pe 's/\n/; /' | sed -e 's/; $//')${RBUFFER}
-        len="${cmd%%@*}"
+        # NOTE: treat '\%#' as cursor position
+        BUFFER=${LBUFFER}$(sed 's/\\%#//g' <<<"$cmd" | perl -pe "chomp if eof" | perl -pe 's/\n/\\n/' | sed -e 's/; $//')${RBUFFER}
+        # NOTE: to treat '\n' as 2 chars
+        tmp_cmd=$(perl -pe "chomp if eof" <<<"$cmd" | perl -pe 's/\n/nn/')
+        len="${tmp_cmd%%\\%#*}"
         CURSOR=$((CURSOR+$#len))
         if [[ $accept -eq 1 ]]; then
             zle accept-line
