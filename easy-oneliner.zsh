@@ -78,9 +78,9 @@ easy-oneliner() {
     local len
     if [[ -n $cmd ]]; then
         # NOTE: treat '\%#' as cursor position
-        BUFFER=${LBUFFER}$(sed 's/\\%#//g' <<<"$cmd" | perl -pe "chomp if eof" | perl -pe 's/\n/\\n/' | sed -e 's/; $//')${RBUFFER}
-        # NOTE: to treat '\n' as 2 chars
-        tmp_cmd=$(perl -pe "chomp if eof" <<<"$cmd" | perl -pe 's/\n/nn/')
+        BUFFER=${LBUFFER}$(sed 's/\\%#//g' <<<"$cmd" | perl -pe "chomp if eof" | perl -pe 's/\n/\\n/' | sed -e 's/; $//' | sed 's/\\%\$/\n/g')${RBUFFER}
+        # NOTE: to treat '\n' as 2 chars only for cursor position
+        tmp_cmd=$(perl -pe "chomp if eof" <<<"$cmd" | sed 's/\\%\$/n/g' | perl -pe 's/\n/nn/')
         len="${tmp_cmd%%\\%#*}"
         CURSOR=$((CURSOR+$#len))
         if [[ $accept -eq 1 ]]; then
