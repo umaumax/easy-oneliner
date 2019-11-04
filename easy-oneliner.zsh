@@ -53,6 +53,12 @@ easy-oneliner() {
     [[ ! -f $file || ! -s $file ]] && return
 
     local cmd res accept
+    local fzf_extra_option
+    if [[ $EASY_ONE_FILTER_COMMAND == 'fzf' ]]; then
+        # CTRL-R: run command immediately
+        # Enter key: normal select
+        fzf_extra_option='--expect=ctrl-r'
+    fi
     while accept=0; cmd="$(
         cat <"$file" \
             `: 'remove not command # comment'` \
@@ -62,13 +68,14 @@ easy-oneliner() {
             `: 'add tab between [comment] and commands'` \
             | perl -pe 's/^(\[.*?\]) (.*)$/$1\t$2/' \
             | ${=EASY_ONE_COLOR_FILTER_COMMAND} \
-            | ${=EASY_ONE_FILTER_COMMAND} ${=EASY_ONE_FILTER_OPTS}
+            | ${=EASY_ONE_FILTER_COMMAND} ${=EASY_ONE_FILTER_OPTS} ${=fzf_extra_option}
             )"; do
         # remove ANSI color escapes
-        res=$(echo $cmd | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)' | sed 's/[[:blank:]]#.*$//')
+        res=$(echo $cmd | tail -1 | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)' | sed 's/[[:blank:]]#.*$//')
         [ -z "$res" ] && continue
+        local key=$(echo $cmd | head -1)
         cmd="$(perl -pe 's/^(\[.*?\])\t(.*)$/$2/' <<<"$res")"
-        if [[ $cmd =~ "!!$" || $cmd =~ "!! *#.*$" ]]; then
+        if [[ $key == 'ctrl-r' || $cmd =~ "!!$" || $cmd =~ "!! *#.*$" ]]; then
             accept=2
             cmd="$(sed -e 's/!!.*$//' <<<"$cmd")"
             break
