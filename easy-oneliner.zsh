@@ -68,9 +68,15 @@ easy-oneliner() {
         res=$(echo $cmd | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)' | sed 's/[[:blank:]]#.*$//')
         [ -z "$res" ] && continue
         cmd="$(perl -pe 's/^(\[.*?\])\t(.*)$/$2/' <<<"$res")"
+        if [[ $cmd =~ "!!$" || $cmd =~ "!! *#.*$" ]]; then
+            accept=2
+            cmd="$(sed -e 's/!!.*$//' <<<"$cmd")"
+            break
+        fi
         if [[ $cmd =~ "!$" || $cmd =~ "! *#.*$" ]]; then
             accept=1
             cmd="$(sed -e 's/!.*$//' <<<"$cmd")"
+            break
         fi
         break
     done
@@ -78,11 +84,19 @@ easy-oneliner() {
     local len
     if [[ -n $cmd ]]; then
         # NOTE: treat '\%#' as cursor position
-        BUFFER=${LBUFFER}$(sed 's/\\%#//g' <<<"$cmd" | perl -pe "chomp if eof" | perl -pe 's/\n/\\n/' | sed -e 's/; $//' | sed 's/\\%\$/\n/g')${RBUFFER}
+        ret=$(sed 's/\\%#//g' <<<"$cmd" | perl -pe "chomp if eof" | perl -pe 's/\n/\\n/' | sed -e 's/; $//' | sed 's/\\%\$/\n/g')
         # NOTE: to treat '\n' as 2 chars only for cursor position
         tmp_cmd=$(perl -pe "chomp if eof" <<<"$cmd" | sed 's/\\%\$/n/g' | perl -pe 's/\n/nn/')
-        len="${tmp_cmd%%\\%#*}"
-        CURSOR=$((CURSOR+$#len))
+        len_str="${tmp_cmd%%\\%#*}"
+        len=${#len_str}
+        # NOTE: run immediately
+        if [[ $accept -eq 2 ]]; then
+            ret=$(eval "$cmd")
+            len="${#ret}"
+        fi
+        BUFFER=${LBUFFER}${ret}${RBUFFER}
+        CURSOR=$((CURSOR+$len))
+        # NOTE: run at prompt
         if [[ $accept -eq 1 ]]; then
             zle accept-line
         fi
