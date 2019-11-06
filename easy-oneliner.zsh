@@ -71,7 +71,7 @@ easy-oneliner() {
             | ${=EASY_ONE_FILTER_COMMAND} ${=EASY_ONE_FILTER_OPTS} ${=fzf_extra_option}
             )"; do
         # remove ANSI color escapes
-        res=$(echo $cmd | tail -1 | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)' | sed 's/[[:blank:]]#.*$//')
+        res=$(echo $cmd | tail -n +2 | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)' | sed 's/[[:blank:]]#.*$//')
         [ -z "$res" ] && continue
         local key=$(echo $cmd | head -1)
         cmd="$(perl -pe 's/^(\[.*?\])\t(.*)$/$2/' <<<"$res")"
