@@ -43,7 +43,7 @@ function easy_one_liner_cgrep_color_filter() {
     cgrep '(^\[[^\]]*\])' 38 |\
     cgrep '(\$\(|\]\t*|\| *|; *|\|\| *|&& *)([a-zA-Z_][a-zA-Z_0-9.\-]*)' ,10 |\
     cgrep '('"'"'[^'"'"']+'"'"')' 226 |\
-    cgrep '([^\][^%]#.*$)' 239
+    cgrep '([^\][^%]#.*$)' 250
 }
 
 easy-oneliner() {
