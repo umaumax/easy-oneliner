@@ -68,8 +68,8 @@ easy-oneliner() {
             | sed -E 's/^(\[[^]]*) *\](.*)$/\1@@@@]\2/g' | awk -F'@@@@' '{printf "%-22s%s\n", $1, $2;}' \
             `: 'add tab between [comment] and commands'` \
             | perl -pe 's/^(\[.*?\]) (.*)$/$1\t$2/' \
-            | ${=EASY_ONE_COLOR_FILTER_COMMAND} \
-            | ${=EASY_ONE_FILTER_COMMAND} "${EASY_ONE_FILTER_OPTS[@]}" ${=fzf_extra_option}
+            | ${EASY_ONE_COLOR_FILTER_COMMAND} \
+            | ${EASY_ONE_FILTER_COMMAND} "${EASY_ONE_FILTER_OPTS[@]}" ${fzf_extra_option}
             )"
     # remove ANSI color escapes
     res=$(echo $cmd | tail -n +2 | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)' | sed 's/[[:blank:]]#.*$//')
