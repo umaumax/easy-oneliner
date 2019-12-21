@@ -5,7 +5,7 @@
 : ${EASY_ONE_REFFILE:="${0:A:h}/easy-oneliner.txt"}
 : ${EASY_ONE_KEYBIND:="^x^x"}
 : ${EASY_ONE_FILTER_COMMAND:="fzf"}
-: ${EASY_ONE_FILTER_OPTS:="--reverse --no-sort --tac --ansi --exit-0"}
+: ${EASY_ONE_FILTER_OPTS:=(--reverse --no-sort --tac --ansi --exit-0)}
 
 : ${EASY_ONE_COLOR_FILTER_COMMAND:="easy_one_liner_perl_color_filter"}
 function easy_one_liner_perl_color_filter() {
@@ -69,7 +69,7 @@ easy-oneliner() {
             `: 'add tab between [comment] and commands'` \
             | perl -pe 's/^(\[.*?\]) (.*)$/$1\t$2/' \
             | ${=EASY_ONE_COLOR_FILTER_COMMAND} \
-            | ${=EASY_ONE_FILTER_COMMAND} ${=EASY_ONE_FILTER_OPTS} ${=fzf_extra_option}
+            | ${=EASY_ONE_FILTER_COMMAND} "${EASY_ONE_FILTER_OPTS[@]}" ${=fzf_extra_option}
             )"
     # remove ANSI color escapes
     res=$(echo $cmd | tail -n +2 | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)' | sed 's/[[:blank:]]#.*$//')
