@@ -9,41 +9,41 @@
 
 : ${EASY_ONE_COLOR_FILTER_COMMAND:="easy_one_liner_perl_color_filter"}
 function easy_one_liner_perl_color_filter() {
-  cat \
-    $(: 'comment out of line start with (but ignored current setting)') \
-    | perl -pe 's/^(: ?)(.*)$/$1\033[30;47;1m$2\033[m/' \
-      $(: 'set color of !') \
-    | perl -pe 's/(!)/\033[33;1m$1\033[m/' \
-      $(: 'set color of 1st command') \
-    | perl -pe 's/(\]\s+)(\S+)/$1\033[32;1m$2\033[m/g' \
-      $(: 'set color of 1st command(pipe)') \
-    | perl -pe 's/(\|\s+)(\S+)/$1\033[32;1m$2\033[m/g' \
-      $(: 'set color of | and UPPERCASE') \
-    | perl -pe 's/(\|| [A-Z]+ [A-Z]+| [A-Z]+ )/\033[35;1m$1\033[m/g' \
-      $(: 'set color of shell $VAR') \
-    | perl -pe 's/(\$[\w]+)/\033[35;1m$1\033[m/g' \
-      $(: 'set color of string ""') \
-    | perl -pe 's/([^\\])(".*[^\\]")/$1\033[33;1m$2\033[m/g' \
-      $(: 'set color of single quote string') \
-    | perl -pe 's/('"'"'[^'"'"']+'"'"')/\033[35;1m$1\033[m/g' \
-      $(: 'set color of \# comment') \
-    | perl -pe 's/^(.*)([[:blank:]]#[[:blank:]]?.*)$/$1\033[30;1m$2\033[m/' \
-      $(: 'set color of [comment]') \
-    | perl -pe 's/(\[.*?\])/\033[36m$1\033[m/'
+  cat |
+    # comment out of line start with (but ignored current setting)
+    perl -pe 's/^(: ?)(.*)$/$1\033[30;47;1m$2\033[m/' |
+    #  set color of |
+    perl -pe 's/(!)/\033[33;1m$1\033[m/' |
+    # set color of 1st command
+    perl -pe 's/(\]\s+)(\S+)/$1\033[32;1m$2\033[m/g' |
+    # set color of 1st command(pipe)
+    perl -pe 's/(\|\s+)(\S+)/$1\033[32;1m$2\033[m/g' |
+    # set color  and UPPERCASE') |
+    perl -pe 's/(\|| [A-Z]+ [A-Z]+| [A-Z]+ )/\033[35;1m$1\033[m/g' |
+    # set color of shell $VAR
+    perl -pe 's/(\$[\w]+)/\033[35;1m$1\033[m/g' |
+    # set color of string ""
+    perl -pe 's/([^\\])(".*[^\\]")/$1\033[33;1m$2\033[m/g' |
+    # set color of single quote string
+    perl -pe 's/('"'"'[^'"'"']+'"'"')/\033[35;1m$1\033[m/g' |
+    # set color of \# comment
+    perl -pe 's/^(.*)([[:blank:]]#[[:blank:]]?.*)$/$1\033[30;1m$2\033[m/' |
+    # set color of [comment]
+    perl -pe 's/(\[.*?\])/\033[36m$1\033[m/'
 }
 type >/dev/null 2>&1 "cgrep" && EASY_ONE_COLOR_FILTER_COMMAND="easy_one_liner_cgrep_color_filter"
 function easy_one_liner_cgrep_color_filter() {
-  cgrep '(.*)' 38 \
-    | cgrep '([^\\])(".*[^\\]")' 220 \
-    | cgrep '(\$)(\().*(\))' 28,28,28 \
-    | cgrep '(\$[a-zA-Z_0-9]*)' \
-    | cgrep '(\|)' 201 \
-    | cgrep '(\||)|(&&)' 90,198 \
-    | cgrep '(;)|(\\%#)|(! *$)' 211,88,88 \
-    | cgrep '(^\[[^\]]*\])' 38 \
-    | cgrep '(\$\(|\]\t*|\| *|; *|\|\| *|&& *)([a-zA-Z_][a-zA-Z_0-9.\-]*)' ,10 \
-    | cgrep '('"'"'[^'"'"']+'"'"')' 226 \
-    | cgrep '([^\][^%]#.*$)' 250
+  cgrep '(.*)' 38 |
+    cgrep '([^\\])(".*[^\\]")' 220 |
+    cgrep '(\$)(\().*(\))' 28,28,28 |
+    cgrep '(\$[a-zA-Z_0-9]*)' |
+    cgrep '(\|)' 201 |
+    cgrep '(\||)|(&&)' 90,198 |
+    cgrep '(;)|(\\%#)|(! *$)' 211,88,88 |
+    cgrep '(^\[[^\]]*\])' 38 |
+    cgrep '(\$\(|\]\t*|\| *|; *|\|\| *|&& *)([a-zA-Z_][a-zA-Z_0-9.\-]*)' ,10 |
+    cgrep '('"'"'[^'"'"']+'"'"')' 226 |
+    cgrep '([^\][^%]#.*$)' 250
 }
 
 easy-oneliner() {
@@ -61,15 +61,15 @@ easy-oneliner() {
   fi
   accept=0
   cmd="$(
-    cat <"$file" \
-      $(: 'remove not command # comment') \
-      | sed -e '/^#/d;/^$/d' \
-        $(: 'adjust [comment] space') \
-      | sed -E 's/^(\[[^]]*) *\](.*)$/\1@@@@]\2/g' | awk -F'@@@@' '{printf "%-22s%s\n", $1, $2;}' \
-        $(: 'add tab between [comment] and commands') \
-      | perl -pe 's/^(\[.*?\]) (.*)$/$1\t$2/' \
-      | ${EASY_ONE_COLOR_FILTER_COMMAND} \
-      | ${EASY_ONE_FILTER_COMMAND} "${EASY_ONE_FILTER_OPTS[@]}" ${fzf_extra_option}
+    cat <"$file" |
+      # remove not command # comment
+      sed -e '/^#/d;/^$/d' |
+      # adjust [ comment ] space
+      sed -E 's/^(\[[^]]*) *\](.*)$/\1@@@@]\2/g' | awk -F'@@@@' '{printf "%-22s%s\n", $1, $2;}' |
+      #  add tab between [ comment ] and commands
+      perl -pe 's/^(\[.*?\]) (.*)$/$1\t$2/' |
+      ${EASY_ONE_COLOR_FILTER_COMMAND} |
+      ${EASY_ONE_FILTER_COMMAND} "${EASY_ONE_FILTER_OPTS[@]}" ${fzf_extra_option}
   )"
   # remove ANSI color escapes
   res=$(echo $cmd | tail -n +2 | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)' | sed 's/[[:blank:]]#.*$//')
