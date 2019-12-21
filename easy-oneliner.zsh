@@ -9,9 +9,8 @@
 
 : ${EASY_ONE_COLOR_FILTER_COMMAND:="easy_one_liner_perl_color_filter"}
 function easy_one_liner_perl_color_filter() {
-  cat |
-    # comment out of line start with (but ignored current setting)
-    perl -pe 's/^(: ?)(.*)$/$1\033[30;47;1m$2\033[m/' |
+  # comment out of line start with (but ignored current setting)
+  perl -pe 's/^(: ?)(.*)$/$1\033[30;47;1m$2\033[m/' |
     #  set color of |
     perl -pe 's/(!)/\033[33;1m$1\033[m/' |
     # set color of 1st command
@@ -34,10 +33,10 @@ function easy_one_liner_perl_color_filter() {
 type >/dev/null 2>&1 "cgrep" && EASY_ONE_COLOR_FILTER_COMMAND="easy_one_liner_cgrep_color_filter"
 function easy_one_liner_cgrep_color_filter() {
   cgrep '(.*)' 38 |
-    cgrep '([^\\])(".*[^\\]")' 220 |
-    cgrep '(\$)(\().*(\))' 28,28,28 |
-    cgrep '(\$[a-zA-Z_0-9]*)' |
-    cgrep '(\|)' 201 |
+    cgrep '([^\\])(".*[^\\]")' 220 | # set color of string ""
+    cgrep '(\$)(\().*(\))' 28,28,28 | # set color of shell $VAR
+    cgrep '(\$[a-zA-Z_0-9]*)' | # set color of shell $VAR
+    cgrep '(\|)' 201 | #  set color of |
     cgrep '(\||)|(&&)' 90,198 |
     cgrep '(;)|(\\%#)|(! *$)' 211,88,88 |
     cgrep '(^\[[^\]]*\])' 38 |
