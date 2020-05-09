@@ -33,16 +33,45 @@ function easy_one_liner_perl_color_filter() {
 type >/dev/null 2>&1 "cgrep" && EASY_ONE_COLOR_FILTER_COMMAND="easy_one_liner_cgrep_color_filter"
 function easy_one_liner_cgrep_color_filter() {
   cgrep '(.*)' 38 |
-    cgrep '([^\\])(".*[^\\]")' 220 | # set color of string ""
-    cgrep '(\$)(\().*(\))' 28,28,28 | # set color of shell $VAR
-    cgrep '(\$[a-zA-Z_0-9]*)' | # set color of shell $VAR
-    cgrep '(\|)' 201 | #  set color of |
+    cgrep '([^\\])(".*[^\\]")' 220 |
+    # set color of string ""
+    cgrep '(\$)(\().*(\))' 28,28,28 |
+    # set color of shell $VAR
+    cgrep '(\$[a-zA-Z_0-9]*)' |
+    # set color of shell $VAR
+    cgrep '(\|)' 201 |
+    #  set color of |
     cgrep '(\||)|(&&)' 90,198 |
     cgrep '(;)|(\\%#)|(! *$)' 211,88,88 |
     cgrep '(^\[[^\]]*\])' 38 |
     cgrep '(\$\(|\]\t*|\| *|; *|\|\| *|&& *)([a-zA-Z_][a-zA-Z_0-9.\-]*)' ,10 |
     cgrep '('"'"'[^'"'"']+'"'"')' 226 |
     cgrep '([^\][^%]#.*$)' 250
+}
+
+cache_cat() {
+  local file="$1"
+  local cache_file="$HOME/.cache/easy-oneliner/$(basename $file)"
+  local cache_checksum_file="$cache_file.checksum"
+  mkdir -p $(dirname $cache_file)
+  # NOTE: for incomplete cache file generation (e.g. kill by sigint)
+  if [[ ! -f "$cache_checksum_file" ]] || ! {cat "$cache_checksum_file" | md5sum -c } >/dev/null 2>&1; then
+    rm -f "$cache_file" "$cache_checksum_file"
+  fi
+
+  # NOTE: newer than
+  if [[ ! -e "$cache_file" ]] || [[ "$file" -nt "$cache_file" ]]; then
+    # NOTE: if input is pipe => cache
+    if [[ -p /dev/stdin ]]; then
+      # NOTE: you can see regenerating cache file by tee command because of pipe friendly output
+      tee "$cache_file"
+      md5sum "$cache_file" >"$cache_checksum_file"
+      return 0
+    fi
+    return 1
+  fi
+  cat "$cache_file"
+  return 0
 }
 
 easy-oneliner() {
@@ -60,15 +89,18 @@ easy-oneliner() {
   fi
   accept=0
   cmd="$(
-    cat <"$file" |
-      # remove not command # comment
-      sed -e '/^#/d;/^$/d' |
-      # adjust [ comment ] space
-      sed -E 's/^(\[[^]]*) *\](.*)$/\1@@@@]\2/g' | awk -F'@@@@' '{printf "%-22s%s\n", $1, $2;}' |
-      #  add tab between [ comment ] and commands
-      perl -pe 's/^(\[.*?\]) (.*)$/$1\t$2/' |
-      ${EASY_ONE_COLOR_FILTER_COMMAND} |
-      ${EASY_ONE_FILTER_COMMAND} "${EASY_ONE_FILTER_OPTS[@]}" ${fzf_extra_option}
+    {
+      cache_cat "$file" || {
+        cat "$file" |
+          # remove not command # comment
+          sed -e '/^#/d;/^$/d' |
+          # adjust [ comment ] space
+          sed -E 's/^(\[[^]]*) *\](.*)$/\1@@@@]\2/g' | awk -F'@@@@' '{printf "%-22s%s\n", $1, $2;}' |
+          #  add tab between [ comment ] and commands
+          perl -pe 's/^(\[.*?\]) (.*)$/$1\t$2/' |
+          ${EASY_ONE_COLOR_FILTER_COMMAND}
+      }
+    } | cache_cat "$file" | ${EASY_ONE_FILTER_COMMAND} "${EASY_ONE_FILTER_OPTS[@]}" ${fzf_extra_option}
   )"
   # remove ANSI color escapes
   res=$(echo $cmd | tail -n +2 | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)' | sed 's/[[:blank:]]#.*$//')
