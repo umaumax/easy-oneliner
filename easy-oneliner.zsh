@@ -61,6 +61,7 @@ cache_cat() {
 
   # NOTE: newer than
   if [[ ! -e "$cache_file" ]] || [[ "$file" -nt "$cache_file" ]]; then
+    # NOTE: target file is old
     # NOTE: if input is pipe => cache
     if [[ -p /dev/stdin ]]; then
       # NOTE: you can see regenerating cache file by tee command because of pipe friendly output
@@ -70,6 +71,7 @@ cache_cat() {
     fi
     return 1
   fi
+  # NOTE: target file is latest
   cat "$cache_file"
   return 0
 }
